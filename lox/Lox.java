@@ -1,5 +1,6 @@
 package lox;
 
+import java.beans.Expression;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -68,13 +69,22 @@ class Lox {
         // scan all of the tokens and save them in the List `tokens`
         List<Token> tokens = scanner.scanTokens();
 
+        // test the parser
+        Parser parser = new Parser(tokens);
+        Expr expression = parser.parse();
+        if (hadError) return;   // for syntax errors caught by the parser
+        System.out.println(new AstPrinter().print(expression));
+
+
         // print each token to visualize them. This prints the type, lexeme, and literal value
-        for (Token token : tokens) {
-            System.out.println(token);
-        }
+        // this is just for testing and visualizing
+        // for (Token token : tokens) {
+        //     System.out.println(token);
+        // }
 
     }
 
+    // Scanner error
     static void error(int line, String message) {
         report(line, "", message);
     }
@@ -82,5 +92,14 @@ class Lox {
     private static void report(int line, String where, String message) {
         System.err.println("[line " + line + "] Error" + where + ": " + message);
         hadError = true;
+    }
+
+    // Parser error
+    static void error(Token token, String message) {
+        if (token.type == TokenType.EOF) {
+            report(token.line, " at end", message);
+        } else {
+            report(token.line, " at '" + token.lexeme + "'", message);
+        }
     }
 }

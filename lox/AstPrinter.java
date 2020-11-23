@@ -5,27 +5,27 @@ package lox;
 // To me, this seems like a weird place to implement to visitor methods, but I believe its just for testing
 class AstPrinter implements Expr.Visitor<String> {
 
-    // this main method just lets us test test that we can infact print expressions
-    public static void main(String[] args) {
-        // the expression: -123 * (66.7 + 33.3)
-        Expr expression = new Expr.Binary(
-            new Expr.Unary(
-                new Token(TokenType.MINUS, "-", null, 1),
-                new Expr.Literal(123)
-            ),
-            new Token(TokenType.STAR, "*", null, 1),
-            new Expr.Grouping(
-                new Expr.Binary(
-                    new Expr.Literal(66.7),
-                    new Token(TokenType.PLUS, "+", null, 1),
-                    new Expr.Literal(33.3)
-                )
-            )
-        );
+    // // this main method just lets us test test that we can infact print expressions
+    // public static void main(String[] args) {
+    //     // the expression: -123 * (66.7 + 33.3)
+    //     Expr expression = new Expr.Binary(
+    //         new Expr.Unary(
+    //             new Token(TokenType.MINUS, "-", null, 1),
+    //             new Expr.Literal(123)
+    //         ),
+    //         new Token(TokenType.STAR, "*", null, 1),
+    //         new Expr.Grouping(
+    //             new Expr.Binary(
+    //                 new Expr.Literal(66.7),
+    //                 new Token(TokenType.PLUS, "+", null, 1),
+    //                 new Expr.Literal(33.3)
+    //             )
+    //         )
+    //     );
 
-        // sohuld output (* (- 123) (group 45.67))
-        System.out.println(new AstPrinter().print(expression));
-    }
+    //     // sohuld output (* (- 123) (group 45.67))
+    //     System.out.println(new AstPrinter().print(expression));
+    // }
 
     // accept the visitor, aka run the visit<Type>Expr() method
     String print(Expr expr) {

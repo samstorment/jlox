@@ -8,12 +8,9 @@
  */
 
 // single line comment
-print "Hello, world
-my name is jeff gordon
-i like pie"
 
-print 2 + 3 * 4 - 8 // inline comment
-print 2 <= 3
 
-print "a string at the end"
+2 + 3 * (4 - 8) // inline comment
+2 <= 3
+
 /* another comment, at the end of the file */
