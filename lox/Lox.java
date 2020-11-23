@@ -75,13 +75,6 @@ class Lox {
         if (hadError) return;   // for syntax errors caught by the parser
         System.out.println(new AstPrinter().print(expression));
 
-
-        // print each token to visualize them. This prints the type, lexeme, and literal value
-        // this is just for testing and visualizing
-        // for (Token token : tokens) {
-        //     System.out.println(token);
-        // }
-
     }
 
     // Scanner error
