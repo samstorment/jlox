@@ -11,8 +11,10 @@ import java.util.List;
 
 class Lox {
 
-    // tracks whether or not our source code had an error, this gets set to true when a `error()` is called
+    // tracks whether or not our source code had an error when scanning/parsing, this gets set to true when a `error()` is called
     static boolean hadError = false;
+    static boolean hadRuntimeError = false;
+    private static final Interpreter interpreter = new Interpreter();
 
     public static void main(String [] args) throws IOException {
         // if there is more than one command line arg, tell the user how to use the Lox and exit
@@ -39,6 +41,7 @@ class Lox {
 
         // Indicate an error in the exit code
         if (hadError) System.exit(65);
+        if (hadRuntimeError) System.exit(70);
     }
 
     // wrapper around the run function. for use when running single line lox code at the command line
@@ -69,22 +72,19 @@ class Lox {
         // scan all of the tokens and save them in the List `tokens`
         List<Token> tokens = scanner.scanTokens();
 
-        // test the parser
+        // Get the syntax tree from the Parser, right now this is a single expression
         Parser parser = new Parser(tokens);
         Expr expression = parser.parse();
-        if (hadError) return;   // for syntax errors caught by the parser
-        System.out.println(new AstPrinter().print(expression));
 
+        if (hadError) return;   // for syntax errors caught by the parser
+
+        // run the interpreter
+        interpreter.interpret(expression);
     }
 
     // Scanner error
     static void error(int line, String message) {
         report(line, "", message);
-    }
-
-    private static void report(int line, String where, String message) {
-        System.err.println("[line " + line + "] Error" + where + ": " + message);
-        hadError = true;
     }
 
     // Parser error
@@ -95,4 +95,17 @@ class Lox {
             report(token.line, " at '" + token.lexeme + "'", message);
         }
     }
+
+    // for reporting errors before runtime
+    private static void report(int line, String where, String message) {
+        System.err.println("[line " + line + "] Error" + where + ": " + message);
+        hadError = true;
+    }
+
+    // for reporting runtime errors
+    static void runtimeError(RuntimeError error) {
+        System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        hadRuntimeError = true;
+    }
+
 }
