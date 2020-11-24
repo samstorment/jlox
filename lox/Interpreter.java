@@ -54,8 +54,15 @@ public class Interpreter implements Expr.Visitor<Object> {
                 if (left instanceof Double && right instanceof Double) {
                     return (double)left + (double)right;
                 }
-                if (left instanceof String && right instanceof String) {
-                    return (String)left + (String)right;
+                if (left instanceof String || right instanceof String) {
+                    StringBuilder builder = new StringBuilder();
+
+                    builder.append(stringify(left));
+                    builder.append(stringify(right));
+
+                    return builder.toString();
+                    // this is the original, basic implementation
+                    // return (String)left + (String)right;
                 }
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
             case MINUS:
@@ -68,17 +75,37 @@ public class Interpreter implements Expr.Visitor<Object> {
                 checkNumberOperands(expr.operator, left, right);
                 return (double)left * (double)right;
             case GREATER:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left > (double)right;
+                if (left instanceof Double && right instanceof Double) {
+                    return (double)left > (double)right;
+                }
+                if (left instanceof String || right instanceof String) {
+                    return ((String)left).compareTo((String)right) > 0;
+                }
+                throw new RuntimeError(expr.operator, "Operands must be strings or numbers.");
             case GREATER_EQUAL:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left >= (double)right;
+                if (left instanceof Double && right instanceof Double) {
+                    return (double)left >= (double)right;
+                }
+                if (left instanceof String || right instanceof String) {
+                    return ((String)left).compareTo((String)right) >= 0;
+                }
+                throw new RuntimeError(expr.operator, "Operands must be strings or numbers.");
             case LESS:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left < (double)right;
+                if (left instanceof Double && right instanceof Double) {
+                    return (double)left < (double)right;
+                }
+                if (left instanceof String || right instanceof String) {
+                    return ((String)left).compareTo((String)right) < 0;
+                }
+                throw new RuntimeError(expr.operator, "Operands must be strings or numbers.");
             case LESS_EQUAL:
-                checkNumberOperands(expr.operator, left, right);
-                return (double)left <= (double)right;
+                if (left instanceof Double && right instanceof Double) {
+                    return (double)left <= (double)right;
+                }
+                if (left instanceof String || right instanceof String) {
+                    return ((String)left).compareTo((String)right) <= 0;
+                }
+                throw new RuntimeError(expr.operator, "Operands must be strings or numbers.");
             // we don't need to cast left and right for `==` and `!=` because we can do equality comparisons across types 
             case BANG_EQUAL:
                 return !isEqual(left, right);
@@ -108,12 +135,16 @@ public class Interpreter implements Expr.Visitor<Object> {
     }
 
     // right now this return false if the for a boolean false or nil value, true for everything else
-    // i'd like to change this in the future to return false for empty strings, 0, empty arrays
+    // i'd like to change this in the future to return false for empty arrays
     private boolean isTruthy(Object object) {
-
+        
+        // make null, 0, and empty strings equal false. return the value of the boolean if its a boolean
         if (object == null) { return false; }
         if (object instanceof Boolean) return (boolean)object;
+        if (object instanceof Double && (double)object == 0.0) return false;
+        if (object instanceof String && ((String)object).equals("")) return false;
 
+        // return true if none of the cases above are met
         return true;
     }
 
