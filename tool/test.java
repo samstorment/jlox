@@ -4,9 +4,7 @@ package tool;
 public class test {
 
     public static void main(String [] args) {
-        Object cool = 55;
-        Object nice = 8;
-        System.out.println(0/0);
+        System.out.println(10/0);
     }
 
 }

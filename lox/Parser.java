@@ -1,10 +1,16 @@
 package lox;
 
+import java.util.ArrayList;
 import java.util.List;
+
+/* The Parser is repsonsible for converting the list of tokens it recieves form the Scanner into a list of statements.
+ * It receives the tokens in its constructor, and generates a list of statements in the parse() method, and returns them.
+ * The Parser catches sytax errors and tries to recover from them and continue parsing to report meaningful errors
+ * to the user. */
 
 public class Parser {
 
-    // a custome error to throw when the Parser encounters a syntax error
+    // a custom error to throw when the Parser encounters a syntax error
     private static class ParseError extends RuntimeException {}
 
     // the tokens to parse
@@ -17,21 +23,44 @@ public class Parser {
         this.tokens = tokens;
     }
     
-    // currently parses a single expression and returns the expression, will add more later
-    Expr parse() {
+    List<Stmt> parse() {
         try {
-            // try to parse the expression and return it
-            return expression();
-        } catch (ParseError error) {
-            // return null if a syntax error occurs. This means once the first syntax error is found, we can no longer return a valid syntax tree
+
+            List<Stmt> statements = new ArrayList<>();
+            while (!isAtEnd()) {
+                statements.add(declaration());
+            }
+            
+            return statements; 
+        } catch (ParseError err) {
             return null;
         }
     }
 
-    // expression     → equality ;
+
+    // expression     → assignment ;
     private Expr expression() {
         // expressions always expand to equality
-        return equality();
+        return assignment();
+    }
+
+    // assignment     → IDENTIFIER "=" assignment | equality ;
+    private Expr assignment() {
+        Expr expr = equality();
+
+        if (match(TokenType.EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+
+            if (expr instanceof Expr.Variable) {
+                Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
     }
     
     // equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -125,6 +154,11 @@ public class Parser {
             return new Expr.Literal(previous().literal);
         }
 
+        // if the TokenType is an Identifier, retrurn that identifier. We return previous() because match consumes the identifier
+        if (match(TokenType.IDENTIFIER)) {
+            return new Expr.Variable(previous());
+        }
+
         // if the TokenType is a left parenthesis we have the start of a grouped expression
         if (match(TokenType.LEFT_PAREN)) {
             // get the expression inside of the parentheses
@@ -140,6 +174,58 @@ public class Parser {
         throw error(peek(), "Expect Expression.");
     }
 
+    private Stmt declaration() {
+        try {
+            if (match(TokenType.VAR)) return varDeclaration();
+            return statement();
+        } catch (ParseError error) {
+            synchronize();
+            return null;
+        }
+    }
+
+    private Stmt statement() {
+        if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
+    
+        return expressionStatement();
+    }
+
+    private Stmt printStatement() {
+        Expr value = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Stmt.Print(value);
+    }
+
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
+    private Stmt varDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+        Expr initializer = null;
+        if (match(TokenType.EQUAL)) {
+            initializer = expression();
+        }
+
+        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
+    }
+
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+    
     // START HELPERS
     private boolean match(TokenType... types) {
         // loop through all of the types passed in

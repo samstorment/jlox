@@ -51,14 +51,29 @@ class Lox {
 
         // just keep waiting for user input
         while (true) {
-            // print a greater than sign as an indicator for Lox code
-            System.out.print("> ");
-            // read the user's line of input
+
+            String promptArrow = ConsoleColors.YELLOW_BOLD_BRIGHT + ">> " + ConsoleColors.RESET;
+            String resultArrow = ConsoleColors.GREEN_BOLD_BRIGHT + "-> " + ConsoleColors.RESET;
+
+            // print two greater than signs as the command prompt
+            System.out.print(promptArrow);
+
+            // read the user's line of input. re-read if the input is empty
             String line = reader.readLine();
             // the line is null when ctrl+d (the "end-of-file" signal) is entered, or when 'exit' is typed
             if (line == null || line.equals("exit")) break;
+
+            // keep re-reading input if its empty
+            while (line.equals("") ) {
+                System.out.print(promptArrow);
+                line = reader.readLine();
+            }
+            // print a green arrow for the result
+            System.out.print(resultArrow);
+
             // run the text the user inputs on the line
             run(line);
+            System.out.println();
             // reset the error state after each line of code is run
             hadError = false;
         }
@@ -68,18 +83,19 @@ class Lox {
     private static void run(String source) {
 
         // instantiate the Scanner, passing in the source code string
+        // the scanner generates a list of tokens from the source file when we call scanTokens()
         Scanner scanner = new Scanner(source);
-        // scan all of the tokens and save them in the List `tokens`
         List<Token> tokens = scanner.scanTokens();
 
-        // Get the syntax tree from the Parser, right now this is a single expression
+        // Get the list of statements from the Parser
         Parser parser = new Parser(tokens);
-        Expr expression = parser.parse();
+        List<Stmt> statements = parser.parse();
+
 
         if (hadError) return;   // for syntax errors caught by the parser
 
-        // run the interpreter
-        interpreter.interpret(expression);
+        // run the interpreter by handing the statements to the interpreter
+        interpreter.interpret(statements);
     }
 
     // Scanner error
@@ -98,13 +114,13 @@ class Lox {
 
     // for reporting errors before runtime
     private static void report(int line, String where, String message) {
-        System.err.println("[line " + line + "] Error" + where + ": " + message);
+        System.err.println(ConsoleColors.RED_BRIGHT + "[line " + line + "] Error" + where + ": " + message);
         hadError = true;
     }
 
     // for reporting runtime errors
     static void runtimeError(RuntimeError error) {
-        System.err.println(error.getMessage() + "\n[line " + error.token.line + "]");
+        System.err.println(ConsoleColors.RED_BRIGHT + "[line " + error.token.line + "] " + error.getMessage());
         hadRuntimeError = true;
     }
 

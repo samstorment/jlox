@@ -4,15 +4,28 @@
 
 
 /* Here is a multi-line comment
- * We type stuff here 
- */
+ * We type stuff here */
 
 // single line comment
+var name = "Sam";
+var age = 23;
 
-!!""
+// an example of using scope to reuse variable names
+{
+    var name = "Gabby";
+    var age = 6;
 
-!((6 * 9 + 8 / (2 - 1)) + (4 * 3 / 12 * 2) < 6 * 6)
-2 + 3 * (4 - 8) // inline comment
-2 <= 3
+    print(name + " is " + age + "!") * 2;
+}
+
+var a = 1;
+{
+    var a = a + 2;
+    print(a);
+}
+
+print(name + " is " + age + " years old.");   // inline comment
+print("That age is less than 65: " + (age < 65));
+
 
 /* another comment, at the end of the file */

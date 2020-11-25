@@ -21,14 +21,26 @@ public class GenerateAst {
         // list of non-terminal productions that an expression can expand to
         List<String> expressionTypes = Arrays.asList(
             // the left side of the colon is the Class Name/type of the non-terminal. The right side is the comma separated list of constructor parameters
+            "Assign   : Token name, Expr value",
             "Binary   : Expr left, Token operator, Expr right",
             "Grouping : Expr expression",
             "Literal  : Object value",
-            "Unary    : Token operator, Expr right"
+            "Unary    : Token operator, Expr right",
+            "Variable : Token name"      
+        );
+
+        // list of types of valid statements, this list will grow
+        List<String> statementTypes = Arrays.asList(
+            "Block      : List<Stmt> statements",
+            "Expression : Expr expression",
+            "Print      : Expr expression",
+            "Var        : Token name, Expr initializer"
         );
 
         // define an Abstract Syntax tree file called Expr.java. Place that file in the outputDir. Create subclasses from the list of expressionTypes
         defineAst(outputDir, "Expr", expressionTypes);
+        // do the same as above, this time for statements rather than expressions
+        defineAst(outputDir, "Stmt", statementTypes);
     }
 
     private static void defineAst(String outputDir, String baseName, List<String> types) throws IOException {
@@ -58,7 +70,7 @@ public class GenerateAst {
             defineType(writer, baseName, className, fields);
         }
         
-        writer.println("    // Create an `accept` method in the Expr class that all subclasses must implement");
+        writer.println("    // Create an `accept` method in the " + baseName + " class that all subclasses must implement");
         writer.println("    abstract <R> R accept(Visitor<R> visitor);\n");
 
         // print the final closing bracket and close the file writer
@@ -70,7 +82,7 @@ public class GenerateAst {
         writer.println("    // Generic Visitor interface that has methods for each subclass");
         writer.println("    interface Visitor<R> {");
 
-        writer.println("        // create a generic `visit` method for each expression subclass");
+        writer.println("        // create a generic `visit` method for each " + baseName + " subclass");
         for (String type : types) {
             // get the typeName, AKA the sublass name. This is on the left side of the colon in the list of types we made
             String typeName = type.split(":")[0].trim();
